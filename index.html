@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS FOCUS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ALARM OVERLAY -->
+<div id="alarm-overlay">
+  <div class="alarm-box" id="alarm-box">
+    <div class="corner-bracket tl"></div><div class="corner-bracket tr"></div>
+    <div class="corner-bracket bl"></div><div class="corner-bracket br"></div>
+    <div class="alarm-icon" id="alarm-icon">⚡</div>
+    <div class="alarm-title" id="alarm-title">SESSION COMPLETE</div>
+    <div class="alarm-sub" id="alarm-sub">TRANSITIONING TO NEXT PHASE...</div>
+    <div class="alarm-countdown" id="alarm-countdown">3</div>
+    <div class="alarm-bar"><div class="alarm-bar-fill" id="alarm-bar-fill" style="width:100%"></div></div>
+  </div>
+</div>
+
+<!-- PAGE 1: NICKNAME -->
+<div id="page-nick" class="page active">
+  <div class="nick-container">
+    <div class="nick-logo glitch" data-text="NEXUS">NEXUS</div>
+    <div class="nick-sub">focus protocol // v2.0.77</div>
+    <div class="panel nick-form">
+      <div class="corner-bracket tl"></div><div class="corner-bracket tr"></div>
+      <div class="corner-bracket bl"></div><div class="corner-bracket br"></div>
+      <label class="nick-label">// INITIALIZE OPERATOR IDENTITY</label>
+      <div class="nick-input-wrap">
+        <input type="text" id="nick-input" placeholder="ENTER YOUR CALLSIGN..." maxlength="20" autocomplete="off">
+        <span class="nick-cursor">_</span>
+      </div>
+      <button class="btn btn-cyan" onclick="submitNick()" style="width:100%;">ACCESS SYSTEM &gt;&gt;</button>
+    </div>
+    <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:0.1em;line-height:1.8;">
+      SYS: NEXUS FOCUS PROTOCOL ACTIVE<br>
+      NODE: READY // PING: <span id="PING">12 </span>ms // ENCRYPT: ON
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: DASHBOARD -->
+<div id="page-dash" class="page">
+  <div class="topbar">
+    <div class="topbar-logo">NEXUS <span style="color:var(--magenta)">◆</span> FOCUS</div>
+    <div class="topbar-status">
+      <span class="status-dot"></span>SYSTEM ACTIVE // <span id="clock-display">00:00:00</span>
+    </div>
+  </div>
+  <div class="dash-content">
+    <div class="welcome-bar">
+      <div>
+        <div class="welcome-text">WELCOME BACK, OPERATOR</div>
+        <div class="welcome-name" id="dash-username">—</div>
+      </div>
+      <button class="btn btn-magenta" onclick="showPage('page-nick')" style="font-size:0.6rem;padding:7px 16px;">⟲ LOGOUT</button>
+    </div>
+    <div class="dash-grid">
+      <!-- TIMER SETTINGS -->
+      <div class="panel timer-panel">
+        <div class="corner-bracket tl"></div><div class="corner-bracket tr"></div>
+        <div class="corner-bracket bl"></div><div class="corner-bracket br"></div>
+        <div class="section-title">⬡ TIMER CONFIG</div>
+        <div class="timer-settings">
+          <div class="setting-row">
+            <div class="setting-label">FOCUS</div>
+            <div class="number-ctrl">
+              <button class="num-btn" onclick="adjustTime('focus',-1)">−</button>
+              <input type="number" class="num-input" id="focus-input" value="25" min="1" max="90" onchange="syncTime('focus')">
+              <button class="num-btn" onclick="adjustTime('focus',1)">+</button>
+            </div>
+            <div class="setting-value" id="focus-display">25<span style="font-size:0.6rem;opacity:0.5">m</span></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">SHORT BREAK</div>
+            <div class="number-ctrl">
+              <button class="num-btn" onclick="adjustTime('short',-1)">−</button>
+              <input type="number" class="num-input" id="short-input" value="5" min="1" max="30" onchange="syncTime('short')">
+              <button class="num-btn" onclick="adjustTime('short',1)">+</button>
+            </div>
+            <div class="setting-value" id="short-display">5<span style="font-size:0.6rem;opacity:0.5">m</span></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">LONG BREAK <span class="lock-icon">🔒</span></div>
+            <div class="setting-value setting-locked">30<span style="font-size:0.6rem;opacity:0.5">m</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TASK QUEUE -->
+      <div class="panel schedule-panel">
+        <div class="corner-bracket tl"></div><div class="corner-bracket tr"></div>
+        <div class="corner-bracket bl"></div><div class="corner-bracket br"></div>
+        <div class="section-title">⬡ TASK QUEUE</div>
+        <div class="schedule-list" id="task-list">
+          <div class="empty-state" id="empty-state">// QUEUE EMPTY — ADD A NEW TASK</div>
+        </div>
+        <div class="add-task-row">
+          <input type="text" id="task-input" placeholder="TASK NAME..." maxlength="60"
+            onkeydown="if(event.key==='Enter')addTask()">
+          <button class="btn btn-cyan" onclick="addTask()" style="padding:8px 14px;font-size:0.6rem;">+ ADD</button>
+        </div>
+      </div>
+
+      <!-- START -->
+      <div class="start-section">
+        <div>
+          <div class="start-hint" id="start-hint">// SELECT A TASK TO ACTIVATE START</div>
+        </div>
+        <button class="btn btn-dim" id="start-btn" onclick="startPomodoro()">▶ BEGIN SESSION</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: POMODORO -->
+<div id="page-pomo" class="page">
+  <div class="pomo-topbar">
+    <div class="pomo-topbar-left">
+      <div>
+        <div class="pomo-task-label">ACTIVE TASK</div>
+        <div class="pomo-task-name" id="pomo-task-name">—</div>
+      </div>
+      <div class="dnd-badge"> DO NOT DISTURB </div>
+    </div>
+    <button class="btn btn-magenta" onclick="exitPomodoro()" style="font-size:0.6rem;padding:7px 16px;">✕ EXIT</button>
+  </div>
+  <div class="pomo-main">
+    <div class="phase-label focus" id="phase-label">◈ FOCUS MODE</div>
+    <div class="timer-ring-wrap">
+      <svg class="timer-svg" width="220" height="220" viewBox="0 0 220 220">
+        <circle class="ring-bg" cx="110" cy="110" r="100"/>
+        <circle class="ring-prog focus" id="ring-prog" cx="110" cy="110" r="100"
+          stroke-dasharray="628.3" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-display">
+        <div class="timer-time focus" id="timer-display">25:00</div>
+        <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:0.15em;margin-top:4px;" id="session-phase-sub">FOCUS #1</div>
+      </div>
+    </div>
+    <div class="session-dots" id="session-dots"></div>
+    <div class="pomo-controls">
+      <button class="skip-btn" onclick="skipPhase()">⟩ SKIP</button>
+      <button class="btn btn-cyan" id="pomo-start-btn" onclick="togglePomo()">▶ START</button>
+      <button class="btn btn-magenta" id="done-btn" onclick="markDone()">✓ COMPLETE</button>
+    </div>
+    <div class="pomo-stats">
+      <div class="stat-item">
+        <div class="stat-val" id="stat-sessions">0</div>
+        <div class="stat-key">FOCUS SESSIONS</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="stat-time">0m</div>
+        <div class="stat-key">TOTAL FOCUS</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: COMPLETE -->
+<div id="page-complete" class="page">
+  <div class="complete-box">
+    <div class="panel" style="padding:40px;">
+      <div class="corner-bracket tl"></div><div class="corner-bracket tr"></div>
+      <div class="corner-bracket bl"></div><div class="corner-bracket br"></div>
+      <div class="complete-icon">⚡</div>
+      <div class="complete-title">MISSION COMPLETE!</div>
+      <div class="complete-sub" id="complete-message">Outstanding. You completed the task with full focus.</div>
+      <div class="complete-stats">
+        <div class="cstat panel">
+          <div class="cstat-val" id="final-sessions">0</div>
+          <div class="cstat-key">FOCUS SESSIONS</div>
+        </div>
+        <div class="cstat panel">
+          <div class="cstat-val magenta" id="final-time">0</div>
+          <div class="cstat-key">FOCUS MINUTES</div>
+        </div>
+      </div>
+      <div class="long-break-notice" id="lb-notice">
+        ☕ LONG BREAK INITIATED — YOU EARNED IT!<br>
+        <div class="lb-timer" id="lb-timer">30:00</div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-cyan" onclick="backToDash()">◀ DASHBOARD</button>
+        <button class="btn btn-magenta" onclick="newSession()">⟳ NEW SESSION</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
