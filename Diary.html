@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catatan Harian</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1a1410;
+    --surface: #231c15;
+    --card: #2c2318;
+    --card2: #322820;
+    --border: #4a3828;
+    --border-light: #5c4535;
+    --gold: #c9962a;
+    --gold-light: #e8b84b;
+    --gold-dim: #7a5a1a;
+    --text: #f0e6d3;
+    --text-dim: #a89070;
+    --text-muted: #6b5540;
+    --red: #c0392b;
+    --green: #27ae60;
+    --radius: 10px;
+    --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* SAGE THEME */
+  body.theme-sage {
+    --bg: #1a1f18;
+    --surface: #1e251c;
+    --card: #232c20;
+    --card2: #283226;
+    --border: #384d34;
+    --border-light: #4a6344;
+    --gold: #7eb87a;
+    --gold-light: #a3d19f;
+    --gold-dim: #3a6338;
+    --text: #e8f0e5;
+    --text-dim: #8aab84;
+    --text-muted: #506850;
+  }
+
+  /* LIGHT THEME */
+  body.theme-light {
+    --bg: #f5ede0;
+    --surface: #ede2d0;
+    --card: #faf5ec;
+    --card2: #f0e8d8;
+    --border: #d4c0a0;
+    --border-light: #c0a880;
+    --gold: #9b6e2a;
+    --gold-light: #b8862e;
+    --gold-dim: #d4b07a;
+    --text: #2c1e10;
+    --text-dim: #7a5c3a;
+    --text-muted: #b09070;
+  }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 30px 20px 60px;
+    display: flex;
+    justify-content: center;
+    transition: background var(--transition), color var(--transition);
+    background-image: 
+      radial-gradient(ellipse at 20% 0%, rgba(201,150,42,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,150,42,0.04) 0%, transparent 50%);
+  }
+
+  .page-wrap {
+    width: 100%;
+    max-width: 740px;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .site-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+
+  .site-header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+
+  .site-header .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 6px;
+  }
+
+  .header-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .header-rule::before,
+  .header-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-light), transparent);
+  }
+
+  .header-rule span {
+    color: var(--gold);
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  /* ── MAIN CARD ── */
+  .journal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.3),
+      0 8px 32px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+
+  /* ── SETTINGS STRIP ── */
+  .settings-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .settings-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .theme-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    padding: 5px 14px;
+    font-size: 12px;
+    font-family: 'Lora', serif;
+    border: 1px solid var(--border-light);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .pill:hover { border-color: var(--gold); color: var(--gold); }
+  .pill.active { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600; }
+
+  .lock-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .lock-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .lock-badge.off { background: rgba(192,57,43,0.15); color: var(--red); border: 1px solid rgba(192,57,43,0.3); }
+  .lock-badge.on  { background: rgba(39,174,96,0.15);  color: var(--green); border: 1px solid rgba(39,174,96,0.3); }
+
+  /* ── WRITING AREA ── */
+  .writing-area {
+    padding: 28px 32px 24px;
+  }
+
+  /* date bar */
+  .date-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .date-display {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--gold-light);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .date-display .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  input[type="date"] {
+    padding: 7px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--card2);
+    color: var(--text-dim);
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border var(--transition);
+    outline: none;
+    color-scheme: dark;
+  }
+
+  body.theme-light input[type="date"] { color-scheme: light; }
+
+  input[type="date"]:focus {
+    border-color: var(--gold);
+  }
+
+  /* divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-light) 30%, var(--border-light) 70%, transparent);
+    margin-bottom: 22px;
+  }
+
+  /* title input */
+  input.title-input {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 600;
+    outline: none;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+    caret-color: var(--gold);
+  }
+
+  input.title-input::placeholder { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+  .title-underline {
+    height: 2px;
+    background: linear-gradient(to right, var(--gold-dim), transparent);
+    border-radius: 2px;
+    margin-bottom: 22px;
+    transition: opacity var(--transition);
+  }
+
+  /* textarea */
+  .paper-lines {
+    position: relative;
+  }
+
+  textarea#noteContent {
+    width: 100%;
+    min-height: 320px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    line-height: 1.9;
+    outline: none;
+    resize: none;
+    caret-color: var(--gold-light);
+    overflow: hidden;
+  }
+
+  textarea#noteContent::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* word count */
+  .word-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 10px;
+    font-style: italic;
+    transition: color var(--transition);
+  }
+
+  /* ── ACTION BAR ── */
+  .action-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 22px;
+    font-family: 'Lora', serif;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.06);
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+
+  .btn:hover::after { opacity: 1; }
+
+  .btn-primary {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1a0f00;
+    font-weight: 700;
+    box-shadow: 0 2px 12px rgba(201,150,42,0.25);
+  }
+
+  .btn-primary:hover {
+    background: var(--gold-light);
+    border-color: var(--gold-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 18px rgba(201,150,42,0.35);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border-light);
+    color: var(--text-dim);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--gold-dim);
+    color: var(--text);
+  }
+
+  .btn-danger {
+    background: transparent;
+    border-color: rgba(192,57,43,0.35);
+    color: #c0392b;
+  }
+
+  .btn-danger:hover {
+    background: rgba(192,57,43,0.1);
+    border-color: rgba(192,57,43,0.6);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* status */
+  .status-text {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    animation: pulse 2.5s ease infinite;
+  }
+
+  /* ── LOCK OVERLAY ── */
+  #lockOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,8,5,0.97);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .lock-card {
+    background: var(--card);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 44px 44px 36px;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,150,42,0.1);
+    animation: scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .lock-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .lock-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .lock-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 26px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .pin-display {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .pin-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border-light);
+    background: transparent;
+    transition: all 0.2s ease;
+  }
+
+  .pin-dot.filled {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(201,150,42,0.4);
+  }
+
+  input#pinInput {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 1px;
+    height: 1px;
+  }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .key-btn {
+    padding: 14px;
+    font-size: 18px;
+    font-family: 'Playfair Display', serif;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .key-btn:hover { background: var(--border); border-color: var(--gold-dim); }
+  .key-btn:active { transform: scale(0.95); }
+  .key-btn.wide { grid-column: span 2; font-size: 14px; color: var(--text-dim); }
+  .key-btn.clear { color: var(--red); }
+
+  .lock-error {
+    color: var(--red);
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 20px;
+    animation: shake 0.4s ease;
+  }
+
+  /* ── PIN SETUP MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 8888;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.25s ease;
+  }
+
+  .modal-card {
+    background: var(--card);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 36px;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: scaleIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .modal-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+
+  .modal-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-style: italic; }
+
+  .modal-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--card2);
+    color: var(--text);
+    font-family: 'Lora', serif;
+    font-size: 20px;
+    text-align: center;
+    letter-spacing: 8px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border var(--transition);
+    caret-color: var(--gold);
+  }
+
+  .modal-input:focus { border-color: var(--gold); }
+  .modal-input::placeholder { letter-spacing: 2px; font-size: 14px; color: var(--text-muted); }
+
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown { from { opacity:0; transform: translateY(-14px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform: translateY(14px);  } to { opacity:1; transform: translateY(0); } }
+  @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+  @keyframes scaleIn  { from { opacity:0; transform: scale(0.88); } to { opacity:1; transform: scale(1); } }
+  @keyframes pulse    { 0%,100% { opacity:0.5; transform: scale(1); } 50% { opacity:1; transform: scale(1.3); } }
+  @keyframes shake    { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  @keyframes flash-gold { 0%,100% { color: var(--text-muted); } 50% { color: var(--gold); } }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card2);
+    border: 1px solid var(--border-light);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s ease;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    z-index: 7777;
+    white-space: nowrap;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  #toast.success { border-color: rgba(39,174,96,0.5); }
+  #toast.error   { border-color: rgba(192,57,43,0.5); }
+
+  /* ── MOBILE ── */
+  @media (max-width: 560px) {
+    body { padding: 20px 14px 50px; }
+    .writing-area { padding: 22px 20px 18px; }
+    .action-bar { padding: 14px 20px; }
+    .settings-strip { padding: 12px 16px; }
+    .lock-card { padding: 32px 24px 28px; }
+  }
+</style>
+</head>
+<body class="theme-dark">
+
+<!-- LOCK OVERLAY -->
+<div id="lockOverlay" style="display:none;">
+  <div class="lock-card">
+    <span class="lock-icon">🔒</span>
+    <h2>Jurnal Terkunci</h2>
+    <p>Masukkan PIN Anda untuk membuka catatan harian</p>
+    <div class="pin-display" id="pinDisplay">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <input type="password" id="pinInput" maxlength="4" autocomplete="off">
+    <div class="pin-keypad">
+      <button class="key-btn" onclick="appendPin('1')">1</button>
+      <button class="key-btn" onclick="appendPin('2')">2</button>
+      <button class="key-btn" onclick="appendPin('3')">3</button>
+      <button class="key-btn" onclick="appendPin('4')">4</button>
+      <button class="key-btn" onclick="appendPin('5')">5</button>
+      <button class="key-btn" onclick="appendPin('6')">6</button>
+      <button class="key-btn" onclick="appendPin('7')">7</button>
+      <button class="key-btn" onclick="appendPin('8')">8</button>
+      <button class="key-btn" onclick="appendPin('9')">9</button>
+      <button class="key-btn clear" onclick="clearPinLast()">⌫</button>
+      <button class="key-btn" onclick="appendPin('0')">0</button>
+      <button class="key-btn" onclick="verifyPin()">↵</button>
+    </div>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+</div>
+
+<!-- PIN SETUP MODAL -->
+<div id="pinModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <h3>🔐 Buat PIN Baru</h3>
+    <p>Masukkan 4 digit PIN untuk mengunci jurnal Anda</p>
+    <input type="password" id="newPinInput" class="modal-input" placeholder="••••" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePinModal()">Batal</button>
+      <button class="btn btn-primary" onclick="confirmNewPin()">Simpan PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="page-wrap">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="eyebrow">Catatan Pribadi</div>
+    <h1>Buku Harian</h1>
+    <p class="subtitle">Setiap hari adalah lembaran baru yang menunggu kisah Anda</p>
+    <div class="header-rule"><span>✦</span></div>
+  </header>
+
+  <!-- Card -->
+  <div class="journal-card">
+
+    <!-- Settings strip -->
+    <div class="settings-strip">
+      <span class="settings-label">Tema</span>
+      <div class="theme-pills">
+        <button class="pill active" id="pill-dark"  onclick="setTheme('dark')">🌙 Gelap</button>
+        <button class="pill"        id="pill-light" onclick="setTheme('light')">☀️ Terang</button>
+        <button class="pill"        id="pill-sage"  onclick="setTheme('sage')">🌿 Sage</button>
+      </div>
+      <div class="lock-controls">
+        <span class="lock-badge off" id="lockBadge">Mati</span>
+        <button class="pill" id="btnToggleLock" onclick="toggleLock()">Aktifkan PIN</button>
+      </div>
+    </div>
+
+    <!-- Writing area -->
+    <div class="writing-area">
+
+      <!-- Date bar -->
+      <div class="date-bar">
+        <div class="date-display">
+          <span class="dot"></span>
+          <span id="fullDateText">Memuat tanggal...</span>
+        </div>
+        <input type="date" id="noteDate" onchange="updateDateDisplay()">
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Title -->
+      <input type="text" class="title-input" id="noteTitle" placeholder="Judul tulisan hari ini..." autocomplete="off" maxlength="100">
+      <div class="title-underline"></div>
+
+      <!-- Content -->
+      <div class="paper-lines">
+        <textarea id="noteContent" placeholder="Goreskan cerita Anda di sini... setiap kata adalah jejak yang tak ternilai." oninput="autoResize(this); updateWordCount()"></textarea>
+      </div>
+
+      <div class="word-count" id="wordCount">0 kata</div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveToPDF()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2M8 2v8M5 9l3 3 3-3"/></svg>
+          Simpan sebagai PDF
+        </button>
+        <button class="btn btn-ghost" onclick="saveToTxt()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V7"/><polyline points="9 2 9 7 14 7"/></svg>
+          Simpan .txt
+        </button>
+        <button class="btn btn-ghost" onclick="clearEditor()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V3a1 1 0 00-1-1z"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
+          Lembar Baru
+        </button>
+      </div>
+      <div class="status-text">
+        <span class="status-dot"></span>
+        <span id="statusMessage">Siap menulis</span>
+      </div>
+    </div>
+
+  </div><!-- /journal-card -->
+
+</div><!-- /page-wrap -->
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let appSettings = { theme: 'dark', isLockActive: false, pin: '' };
+let pinBuffer = '';
+
+// ── INIT ──────────────────────────────────────────────────────
+window.onload = function() {
+  loadSettings();
+  applyTheme(appSettings.theme, false);
+
+  const today = new Date();
+  document.getElementById('noteDate').valueAsDate = today;
+  updateDateDisplay();
+
+  if (appSettings.isLockActive && appSettings.pin) {
+    document.getElementById('lockOverlay').style.display = 'flex';
+  }
+};
+
+// ── SETTINGS ──────────────────────────────────────────────────
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('diarySettings');
+    if (saved) appSettings = { ...appSettings, ...JSON.parse(saved) };
+  } catch(e) {}
+}
+
+function saveSettings() {
+  try { localStorage.setItem('diarySettings', JSON.stringify(appSettings)); } catch(e) {}
+}
+
+// ── THEME ──────────────────────────────────────────────────────
+function setTheme(t) {
+  appSettings.theme = t;
+  applyTheme(t, true);
+  saveSettings();
+}
+
+function applyTheme(t, animate) {
+  document.body.className = 'theme-' + t;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  const pill = document.getElementById('pill-' + t);
+  if (pill) pill.classList.add('active');
+}
+
+// ── DATE ──────────────────────────────────────────────────────
+function getIndonesianDate(dateString) {
+  if (!dateString) return '—';
+  const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const [y, m, d] = dateString.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return `${days[dt.getDay()]}, ${d} ${months[m - 1]} ${y}`;
+}
+
+function updateDateDisplay() {
+  const val = document.getElementById('noteDate').value;
+  document.getElementById('fullDateText').textContent = getIndonesianDate(val);
+}
+
+// ── EDITOR HELPERS ────────────────────────────────────────────
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function updateWordCount() {
+  const txt = document.getElementById('noteContent').value.trim();
+  const count = txt ? txt.split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = count + ' kata';
+}
+
+function clearEditor() {
+  if (document.getElementById('noteContent').value && !confirm('Hapus dan mulai lembar baru?')) return;
+  document.getElementById('noteTitle').value = '';
+  document.getElementById('noteContent').value = '';
+  document.getElementById('noteContent').style.height = '';
+  const today = new Date();
+  document.getElementById('noteDate').valueAsDate = today;
+  updateDateDisplay();
+  updateWordCount();
+  setStatus('Lembar baru siap');
+  showToast('✨ Lembar baru dimulai', 'success');
+}
+
+function setStatus(msg) {
+  document.getElementById('statusMessage').textContent = msg;
+}
+
+// ── TOAST ──────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type || '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+// ── SAVE AS PDF ───────────────────────────────────────────────
+async function saveToPDF() {
+  const title   = document.getElementById('noteTitle').value.trim() || 'Catatan Harian';
+  const content = document.getElementById('noteContent').value.trim();
+  const dateVal = document.getElementById('noteDate').value;
+  const dateStr = getIndonesianDate(dateVal);
+
+  if (!content) { showToast('⚠️ Tulis sesuatu terlebih dahulu', 'error'); return; }
+
+  setStatus('Membuat PDF...');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF) throw new Error('jsPDF tidak tersedia');
+
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const marginL = 25, marginR = 25, marginT = 30, marginB = 25;
+    const contentWidth = W - marginL - marginR;
+    let y = marginT;
+
+    // Background
+    doc.setFillColor(252, 248, 242);
+    doc.rect(0, 0, W, H, 'F');
+
+    // Left accent bar
+    doc.setFillColor(140, 98, 57);
+    doc.rect(0, 0, 5, H, 'F');
+
+    // Header line
+    doc.setDrawColor(209, 194, 165);
+    doc.setLineWidth(0.3);
+    doc.line(marginL, y + 18, W - marginR, y + 18);
+
+    // Title
+    doc.setFont('times', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(74, 59, 50);
+    doc.text(title, W / 2, y + 10, { align: 'center' });
+
+    // Date
+    doc.setFont('times', 'italic');
+    doc.setFontSize(11);
+    doc.setTextColor(140, 98, 57);
+    doc.text(dateStr, W / 2, y + 25, { align: 'center' });
+
+    y += 38;
+
+    // Content lines
+    doc.setFont('times', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(60, 48, 38);
+    const lineHeight = 8;
+    const lines = doc.splitTextToSize(content, contentWidth);
+
+    lines.forEach(line => {
+      if (y + lineHeight > H - marginB) {
+        doc.addPage();
+        doc.setFillColor(252, 248, 242);
+        doc.rect(0, 0, W, H, 'F');
+        doc.setFillColor(140, 98, 57);
+        doc.rect(0, 0, 5, H, 'F');
+        y = marginT;
+      }
+      doc.text(line, marginL, y);
+      y += lineHeight;
+    });
+
+    // Footer
+    doc.setFont('times', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(180, 160, 130);
+    doc.text('Catatan Harian Pribadi', W / 2, H - 12, { align: 'center' });
+
+    // Save
+    const safeTitle = title.replace(/[^a-zA-Z0-9\s\-_]/g, '').replace(/\s+/g, '_').slice(0, 40) || 'CatatanHarian';
+    doc.save(`${safeTitle}_${dateVal || 'tanggal'}.pdf`);
+    setStatus('PDF berhasil disimpan ✓');
+    showToast('✅ PDF berhasil diunduh!', 'success');
+
+  } catch (err) {
+    console.error(err);
+    setStatus('Gagal membuat PDF');
+    showToast('❌ Gagal membuat PDF. Coba lagi.', 'error');
+  }
+}
+
+// ── SAVE AS TXT ───────────────────────────────────────────────
+function saveToTxt() {
+  const title   = document.getElementById('noteTitle').value.trim() || 'Catatan Harian';
+  const content = document.getElementById('noteContent').value.trim();
+  const dateVal = document.getElementById('noteDate').value;
+  const dateStr = getIndonesianDate(dateVal);
+
+  if (!content) { showToast('⚠️ Tulis sesuatu terlebih dahulu', 'error'); return; }
+
+  const text = `${title}\n${dateStr}\n${'─'.repeat(40)}\n\n${content}\n`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${(title.replace(/\s+/g,'_') || 'catatan')}_${dateVal || 'tanggal'}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+  showToast('✅ File .txt berhasil diunduh!', 'success');
+  setStatus('File teks disimpan ✓');
+}
+
+// ── LOCK FEATURE ──────────────────────────────────────────────
+function toggleLock() {
+  if (appSettings.isLockActive) {
+    if (!confirm('Nonaktifkan fitur kunci PIN?')) return;
+    appSettings.isLockActive = false;
+    appSettings.pin = '';
+    saveSettings();
+    updateLockUI();
+    showToast('🔓 Kunci PIN dinonaktifkan', '');
+  } else {
+    openPinModal();
+  }
+}
+
+function openPinModal() {
+  document.getElementById('newPinInput').value = '';
+  document.getElementById('pinModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('newPinInput').focus(), 50);
+}
+
+function closePinModal() {
+  document.getElementById('pinModal').style.display = 'none';
+}
+
+function confirmNewPin() {
+  const pin = document.getElementById('newPinInput').value.trim();
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    showToast('⚠️ PIN harus 4 digit angka', 'error');
+    return;
+  }
+  appSettings.pin = pin;
+  appSettings.isLockActive = true;
+  saveSettings();
+  closePinModal();
+  updateLockUI();
+  showToast('🔒 PIN berhasil diaktifkan!', 'success');
+}
+
+function updateLockUI() {
+  const badge  = document.getElementById('lockBadge');
+  const btn    = document.getElementById('btnToggleLock');
+  if (appSettings.isLockActive) {
+    badge.textContent = 'Aktif';
+    badge.className   = 'lock-badge on';
+    btn.textContent   = 'Nonaktifkan PIN';
+  } else {
+    badge.textContent = 'Mati';
+    badge.className   = 'lock-badge off';
+    btn.textContent   = 'Aktifkan PIN';
+  }
+}
+
+// ── PIN UNLOCK ────────────────────────────────────────────────
+function appendPin(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(verifyPin, 200);
+  }
+}
+
+function clearPinLast() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+  document.getElementById('lockError').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('pd' + i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function verifyPin() {
+  if (pinBuffer === appSettings.pin) {
+    document.getElementById('lockOverlay').style.display = 'none';
+    pinBuffer = '';
+    updatePinDots();
+  } else {
+    document.getElementById('lockError').textContent = 'PIN salah, coba lagi.';
+    document.getElementById('lockError').style.animation = 'none';
+    void document.getElementById('lockError').offsetWidth;
+    document.getElementById('lockError').style.animation = 'shake 0.4s ease';
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+// Keyboard support for PIN
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lockOverlay').style.display !== 'flex') return;
+  if (e.key >= '0' && e.key <= '9') appendPin(e.key);
+  else if (e.key === 'Backspace') clearPinLast();
+  else if (e.key === 'Enter') verifyPin();
+});
+
+// Apply lock UI on load
+updateLockUI();
+</script>
+</body>
+</html>
